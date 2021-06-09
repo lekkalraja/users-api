@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/lekkalraja/users-api/domain"
+	"github.com/lekkalraja/users-api/domain/users"
 	"github.com/lekkalraja/users-api/service"
 	"github.com/lekkalraja/users-api/utils"
 )
@@ -15,14 +15,19 @@ func GetUsers(c *gin.Context) {
 }
 
 func CreateUser(c *gin.Context) {
-	var user domain.User
+	user := &users.User{}
 
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, utils.NewBadRequest(err.Error()))
 		return
 	}
 
-	savedUser, err := service.CreateUser(user)
+	if vError := user.Validate(); vError != nil {
+		c.JSON(http.StatusBadRequest, vError)
+		return
+	}
+
+	savedUser, err := service.CreateUser(*user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return

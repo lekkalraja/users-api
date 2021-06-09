@@ -1,26 +1,21 @@
 package service
 
 import (
-	"github.com/lekkalraja/users-api/domain"
+	"github.com/lekkalraja/users-api/domain/users"
 	"github.com/lekkalraja/users-api/utils"
 )
 
-var users []domain.User
-
-func CreateUser(user domain.User) (*domain.User, *utils.RestErr) {
-	users = append(users, user)
+func CreateUser(user users.User) (*users.User, *utils.RestErr) {
+	if err := user.Save(); err != nil {
+		return nil, err
+	}
 	return &user, nil
 }
 
-func GetUsers() []domain.User {
-	return users
+func GetUsers() []*users.User {
+	return users.GetUsers()
 }
 
-func FindUser(id int64) (*domain.User, *utils.RestErr) {
-	for _, user := range users {
-		if id == user.Id {
-			return &user, nil
-		}
-	}
-	return nil, utils.UserNotFound(id)
+func FindUser(id int64) (*users.User, *utils.RestErr) {
+	return users.FindUser(id)
 }
