@@ -2,18 +2,45 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lekkalraja/users-api/domain"
+	"github.com/lekkalraja/users-api/service"
+	"github.com/lekkalraja/users-api/utils"
 )
 
 func GetUsers(c *gin.Context) {
-	c.String(http.StatusNotImplemented, "Implement Me!!!")
+	c.JSON(http.StatusOK, service.GetUsers())
 }
 
 func CreateUser(c *gin.Context) {
-	c.String(http.StatusNotImplemented, "Implement Me!!")
+	var user domain.User
+
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, utils.NewBadRequest(err.Error()))
+		return
+	}
+
+	savedUser, err := service.CreateUser(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, savedUser)
 }
 
 func FindUser(c *gin.Context) {
-	c.String(http.StatusNotImplemented, "Implement Me!!!")
+	id, err := strconv.Atoi(c.Param("userId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.NewBadRequest("Invalid User Id"))
+		return
+	}
+	user, restErr := service.FindUser(int64(id))
+	if restErr != nil {
+		c.JSON(http.StatusInternalServerError, restErr)
+		return
+	}
+	c.JSON(http.StatusOK, user)
 }
