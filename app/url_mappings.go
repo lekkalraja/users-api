@@ -1,7 +1,17 @@
 package app
 
-import controllers "github.com/lekkalraja/users-api/controllers/ping"
+import (
+	ping "github.com/lekkalraja/users-api/controllers/ping"
+	users "github.com/lekkalraja/users-api/controllers/users"
+)
 
 func mapUrls() {
-	router.GET("/ping", controllers.Ping)
+	// PING Mappings
+	router.GET("/ping", ping.Ping)
+
+	// USER Mappings
+	router.POST("/user", users.CreateUser)
+
+	router.GET("/users", users.GetUsers)
+	router.GET("/user/:userId", users.FindUser)
 }
