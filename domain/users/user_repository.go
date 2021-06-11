@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/lekkalraja/users-api/utils"
+
+	"github.com/lekkalraja/users-api/utils/date_utils"
 )
 
 var (
@@ -16,6 +18,7 @@ func (u *User) Save() *utils.RestErr {
 	if ok {
 		return utils.NewBadRequest(fmt.Sprintf("User %d Already Exist", u.Id))
 	}
+	u.DateCreated = date_utils.GetNowString()
 	userDB[u.Id] = u
 	return nil
 }
