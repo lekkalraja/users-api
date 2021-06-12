@@ -9,10 +9,9 @@ import (
 
 const (
 	userInsertionQuery string = "INSERT INTO users(first_name, last_name, email_id, date_created) values (?, ?, ?, ?);"
-)
-
-var (
-	userDB = make(map[int64]*User)
+	getAllUsers        string = "select * from users;"
+	getByUserId        string = "select * from users where id = ?"
+	deleteUser         string = "delete from users where id = ?"
 )
 
 func (u *User) Save() *utils.RestErr {
@@ -37,20 +36,61 @@ func (u *User) Save() *utils.RestErr {
 	return nil
 }
 
-func GetUsers() []*User {
-	users := make([]*User, 0, len(userDB))
+func GetUsers() ([]*User, *utils.RestErr) {
+	stmt, err := my_sql.PrepareStatement(getAllUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
 
-	for _, value := range userDB {
-		users = append(users, value)
+	rows, getErr := stmt.Query()
+	if getErr != nil {
+		return nil, my_sql.HandleError(getErr)
+	}
+	defer rows.Close()
+
+	users := make([]*User, 0)
+	for rows.Next() {
+		user := &User{}
+		rows.Scan(&user.Id, &user.FirstName, &user.LastName, &user.EmailId, &user.DateCreated)
+		users = append(users, user)
 	}
 
-	return users
+	return users, nil
 }
 
 func FindUser(id int64) (*User, *utils.RestErr) {
-	user, ok := userDB[id]
-	if !ok {
-		return nil, utils.UserNotFound(id)
+	stmt, err := my_sql.PrepareStatement(getByUserId)
+	if err != nil {
+		return nil, err
 	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(id)
+	user := &User{}
+	if getErr := row.Scan(&user.Id, &user.FirstName, &user.LastName, &user.EmailId, &user.DateCreated); getErr != nil {
+		return nil, my_sql.HandleError(getErr)
+	}
+
 	return user, nil
+}
+
+func Delete(id int64) (int64, *utils.RestErr) {
+	stmt, err := my_sql.PrepareStatement(deleteUser)
+	if err != nil {
+		return -1, err
+	}
+	defer stmt.Close()
+
+	row, getErr := stmt.Exec(id)
+	if getErr != nil {
+		return -1, my_sql.HandleError(getErr)
+	}
+
+	affectedRows, rowsErr := row.RowsAffected()
+	if rowsErr != nil {
+		return -1, my_sql.HandleError(rowsErr)
+	}
+
+	return affectedRows, nil
 }

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -11,7 +12,13 @@ import (
 )
 
 func GetUsers(c *gin.Context) {
-	c.JSON(http.StatusOK, service.GetUsers())
+	res, restErr := service.GetUsers()
+	if restErr != nil {
+		c.JSON(http.StatusInternalServerError, restErr)
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
 }
 
 func CreateUser(c *gin.Context) {
@@ -48,4 +55,18 @@ func FindUser(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, user)
+}
+
+func DeleteUser(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("userId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.NewBadRequest("Invalid User Id"))
+		return
+	}
+	user, restErr := service.DeleteUser(int64(id))
+	if restErr != nil {
+		c.JSON(http.StatusInternalServerError, restErr)
+		return
+	}
+	c.JSON(http.StatusOK, map[string]string{"message": fmt.Sprintf("%d Rows Deleted", user)})
 }

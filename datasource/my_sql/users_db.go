@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
@@ -54,6 +55,9 @@ func HandleError(err error) *utils.RestErr {
 	mysqlError, ok := err.(*mysql.MySQLError)
 
 	if !ok {
+		if strings.Contains(err.Error(), "no rows in result set") {
+			return utils.NewBadRequest("Requested User Didn't found")
+		}
 		return utils.InternalServerError(err.Error())
 	}
 
