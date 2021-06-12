@@ -12,6 +12,14 @@ func CreateUser(user users.User) (*users.User, *utils.RestErr) {
 	return &user, nil
 }
 
+func UpdateUser(id int64, user users.User) (int64, *utils.RestErr) {
+	affectedRows, err := user.Update(id)
+	if err != nil {
+		return 0, err
+	}
+	return affectedRows, nil
+}
+
 func GetUsers() ([]*users.User, *utils.RestErr) {
 	return users.GetUsers()
 }

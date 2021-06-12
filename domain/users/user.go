@@ -2,8 +2,6 @@ package users
 
 import (
 	"strings"
-
-	"github.com/lekkalraja/users-api/utils"
 )
 
 type User struct {
@@ -14,14 +12,8 @@ type User struct {
 	DateCreated string `json:"date_created"`
 }
 
-func (user *User) Validate() *utils.RestErr {
-	fName := strings.Trim(user.FirstName, " ")
-	lName := strings.Trim(user.LastName, " ")
-	eId := strings.TrimSpace(user.EmailId)
-
-	if len(fName) == 0 || len(lName) == 0 || len(eId) == 0 {
-		return utils.NewBadRequest("Invalid Fname | LName | Emailid")
-	}
-
-	return nil
+func (user *User) Format() {
+	user.FirstName = strings.Trim(user.FirstName, " ")
+	user.LastName = strings.Trim(user.LastName, " ")
+	user.EmailId = strings.TrimSpace(user.EmailId)
 }

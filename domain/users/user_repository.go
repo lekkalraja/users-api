@@ -8,10 +8,11 @@ import (
 )
 
 const (
-	userInsertionQuery string = "INSERT INTO users(first_name, last_name, email_id, date_created) values (?, ?, ?, ?);"
-	getAllUsers        string = "select * from users;"
-	getByUserId        string = "select * from users where id = ?"
-	deleteUser         string = "delete from users where id = ?"
+	userInsertionQuery string = "INSERT INTO users(first_name, last_name, email_id, date_created) VALUES (?, ?, ?, ?);"
+	getAllUsers        string = "SELECT * FROM users;"
+	getByUserId        string = "SELECT * FROM users where id = ?"
+	deleteUser         string = "DELETE FROM users where id = ?"
+	updateUser         string = "UPDATE users set first_name = ?, last_name = ?, email_id = ? WHERE id = ?"
 )
 
 func (u *User) Save() *utils.RestErr {
@@ -34,6 +35,29 @@ func (u *User) Save() *utils.RestErr {
 
 	u.Id = id
 	return nil
+}
+
+func (u *User) Update(id int64) (int64, *utils.RestErr) {
+	_, err := FindUser(id)
+	if err != nil {
+		return 0, err
+	}
+	stmt, err := my_sql.PrepareStatement(updateUser)
+	if err != nil {
+		return 0, err
+	}
+	defer stmt.Close()
+
+	res, updateErr := stmt.Exec(u.FirstName, u.LastName, u.EmailId, id)
+	if updateErr != nil {
+		return 0, my_sql.HandleError(updateErr)
+	}
+
+	affectedRows, idErr := res.RowsAffected()
+	if idErr != nil {
+		return 0, my_sql.HandleError(idErr)
+	}
+	return affectedRows, nil
 }
 
 func GetUsers() ([]*User, *utils.RestErr) {
