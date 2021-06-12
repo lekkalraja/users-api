@@ -26,3 +26,11 @@ func UserNotFound(id int64) *RestErr {
 		Error:   "no_content",
 	}
 }
+
+func InternalServerError(message string) *RestErr {
+	return &RestErr{
+		Message: fmt.Sprintf("something went wrong while processing request : %s", message),
+		Status:  http.StatusInternalServerError,
+		Error:   "internal_server_error",
+	}
+}

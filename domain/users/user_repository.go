@@ -1,11 +1,14 @@
 package users
 
 import (
-	"fmt"
-
+	"github.com/lekkalraja/users-api/datasource/my_sql"
 	"github.com/lekkalraja/users-api/utils"
 
 	"github.com/lekkalraja/users-api/utils/date_utils"
+)
+
+const (
+	userInsertionQuery string = "INSERT INTO users(first_name, last_name, email_id, date_created) values (?, ?, ?, ?);"
 )
 
 var (
@@ -13,13 +16,24 @@ var (
 )
 
 func (u *User) Save() *utils.RestErr {
-	_, ok := userDB[u.Id]
-
-	if ok {
-		return utils.NewBadRequest(fmt.Sprintf("User %d Already Exist", u.Id))
+	stmt, err := my_sql.PrepareStatement(userInsertionQuery)
+	if err != nil {
+		return err
 	}
+	defer stmt.Close()
+
 	u.DateCreated = date_utils.GetNowString()
-	userDB[u.Id] = u
+	res, saveErr := stmt.Exec(u.FirstName, u.LastName, u.EmailId, u.DateCreated)
+	if saveErr != nil {
+		return my_sql.HandleError(saveErr)
+	}
+
+	id, idErr := res.LastInsertId()
+	if idErr != nil {
+		return my_sql.HandleError(idErr)
+	}
+
+	u.Id = id
 	return nil
 }
 
